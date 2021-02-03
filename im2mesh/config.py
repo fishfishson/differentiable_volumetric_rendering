@@ -1,6 +1,7 @@
 import yaml
 from im2mesh import data
 from im2mesh import dvr
+from im2mesh import local
 import logging
 from multiprocessing import Manager
 import os
@@ -9,6 +10,7 @@ import os
 # method directory; for this project we only use DVR
 method_dict = {
     'dvr': dvr,
+    'local': local
 }
 
 
@@ -195,7 +197,7 @@ def get_dataset(cfg, mode='train', return_idx=False, return_category=False,
 
     if ((dataset_name == 'Shapes3D') or
         (dataset_name == 'DTU') or
-            (dataset_name == 'NMR')):
+        (dataset_name == 'NMR')):
         dataset = data.Shapes3dDataset(
             dataset_folder, fields, split=split,
             categories=categories,
@@ -205,6 +207,12 @@ def get_dataset(cfg, mode='train', return_idx=False, return_category=False,
     elif dataset_name == 'images':
         dataset = data.ImageDataset(
             dataset_folder, return_idx=True
+        )
+    elif dataset_name == 'local':
+        dataset = data.DTUDatasets(
+            dataset_folder, fields, split=split,
+            n_views=n_views,
+            split_model_for_images=split_model_for_images
         )
     else:
         raise ValueError('Invalid dataset_name!')
