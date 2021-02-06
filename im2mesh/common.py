@@ -1,3 +1,4 @@
+from numpy.lib.twodim_base import tri
 import torch
 from im2mesh.utils.libkdtree import KDTree
 import numpy as np
@@ -849,3 +850,17 @@ def normalize_tensor(tensor, min_norm=1e-5, feat_dim=-1):
                               min=min_norm)
     normed_tensor = tensor / norm_tensor
     return normed_tensor
+
+
+def calculate_berycentric_coords(points, tri_verts):
+    assert points.dim() == 2 & tri_verts.dim() == 3
+    edges = points[:, None] - tri_verts
+    s1 = torch.sqrt(torch.sum(torch.cross(edges[:, 1], edges[:, 2], dim=1) ** 2, dim=1))
+    s2 = torch.sqrt(torch.sum(torch.cross(edges[:, 0], edges[:, 2], dim=1) ** 2, dim=1))
+    s3 = torch.sqrt(torch.sum(torch.cross(edges[:, 0], edges[:, 1], dim=1) ** 2, dim=1))
+    s = s1 + s2 + s3
+    assert s.dim() == 1
+    w1 = (s1 / s).view(-1, 1)
+    w2 = (s2 / s).view(-1, 1)
+    w3 = (s3 / s).view(-1, 1)
+    return torch.cat([w1, w2, w3], dim=1)
